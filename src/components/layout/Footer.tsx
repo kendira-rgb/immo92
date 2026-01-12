@@ -15,8 +15,8 @@ export function Footer() {
               <span className="font-display text-xl font-semibold">MaisonLongue</span>
             </div>
             <p className="text-primary-foreground/70 max-w-md">
-              Spécialiste de la location longue durée en France et en Espagne. 
-              Trouvez votre future maison avec un bail sécurisé et un état des lieux professionnel.
+             Location longue durée en France ou vacances en Espagne. 
+              Trouvez votre maison avec un bail sécurisé et un état des lieux professionnel.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
-            © {new Date().getFullYear()} MaisonLongue. Tous droits réservés.
+            © {new Date().getFullYear()} Immo. Tous droits réservés.
           </p>
           <div className="flex gap-6">
             <Link to="/legal" className="text-primary-foreground/50 hover:text-primary text-sm transition-colors">
