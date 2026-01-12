@@ -27,7 +27,7 @@ export default function Index() {
               🏠 Location longue durée
             </span>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground mb-6 leading-tight">
-              Trouvez votre <span className="text-primary">maison</span> en France ou en Espagne
+              Trouvez votre <span className="text-primary">maison</span> en France et en Espagne
             </h1>
             <p className="text-xl text-primary-foreground/80 mb-8 leading-relaxed">
               Des locations longue durée avec contrat de bail sécurisé et état des lieux professionnel. 
@@ -56,7 +56,7 @@ export default function Index() {
               Pourquoi nous choisir ?
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Une approche professionnelle de la location longue durée
+              Une nouvelle approche de la location longue durée en France
             </p>
           </div>
 
