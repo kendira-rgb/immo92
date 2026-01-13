@@ -30,7 +30,7 @@ export function Header() {
               <Home className="h-5 w-5 text-primary" />
             </div>
             <span className="font-display text-xl font-semibold text-foreground">
-              Maison à Louer
+              Immo92
             </span>
           </Link>
 
