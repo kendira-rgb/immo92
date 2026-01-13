@@ -2,6 +2,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// Liste des emails autorisés pour l'accès admin (Google uniquement)
+const ALLOWED_ADMIN_EMAILS = [
+  'kendira@gmail.com',
+  'ilhem.kendira@gmail.com'
+];
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -21,6 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Vérifie si l'email est dans la liste des admins autorisés
+  const isAllowedAdmin = (email: string | undefined): boolean => {
+    if (!email) return false;
+    return ALLOWED_ADMIN_EMAILS.includes(email.toLowerCase());
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -28,9 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id);
-          }, 0);
+          // Vérification directe par email - seuls les emails autorisés sont admin
+          const userEmail = session.user.email;
+          const provider = session.user.app_metadata?.provider;
+          
+          // Admin uniquement si: email autorisé ET connexion via Google
+          const adminStatus = isAllowedAdmin(userEmail) && provider === 'google';
+          setIsAdmin(adminStatus);
         } else {
           setIsAdmin(false);
         }
@@ -41,23 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        const userEmail = session.user.email;
+        const provider = session.user.app_metadata?.provider;
+        const adminStatus = isAllowedAdmin(userEmail) && provider === 'google';
+        setIsAdmin(adminStatus);
       }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const checkAdminStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    
-    setIsAdmin(data?.role === 'admin');
-  };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

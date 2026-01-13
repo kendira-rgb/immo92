@@ -81,7 +81,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="p-2 rounded-lg bg-primary/10">
                   <Home className="h-5 w-5 text-primary" />
                 </div>
-                <span className="font-display text-lg font-semibold">MaisonLongue</span>
+                <span className="font-display text-lg font-semibold">Immo92</span>
               </Link>
             </div>
 
