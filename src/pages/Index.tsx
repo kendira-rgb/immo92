@@ -40,7 +40,7 @@ export default function Index() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-lg px-8">
+              <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white text-lg px-8">
                 <Link to="/contact">Nous contacter</Link>
               </Button>
             </div>
@@ -61,7 +61,7 @@ export default function Index() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-card p-8 rounded-xl shadow-soft hover:shadow-card transition-shadow">
+            <div className="glass-card p-8 rounded-xl hover:shadow-elevated transition-all duration-300">
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                 <FileText className="h-7 w-7 text-primary" />
               </div>
@@ -71,7 +71,7 @@ export default function Index() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-soft hover:shadow-card transition-shadow">
+            <div className="glass-card p-8 rounded-xl hover:shadow-elevated transition-all duration-300">
               <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center mb-6">
                 <ClipboardCheck className="h-7 w-7 text-secondary" />
               </div>
@@ -81,7 +81,7 @@ export default function Index() {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-xl shadow-soft hover:shadow-card transition-shadow">
+            <div className="glass-card p-8 rounded-xl hover:shadow-elevated transition-all duration-300">
               <div className="w-14 h-14 rounded-xl bg-teal/10 flex items-center justify-center mb-6">
                 <Shield className="h-7 w-7 text-teal" />
               </div>
