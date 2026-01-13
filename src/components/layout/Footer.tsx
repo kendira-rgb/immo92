@@ -12,7 +12,7 @@ export function Footer() {
               <div className="p-2 rounded-lg bg-primary/20">
                 <Home className="h-5 w-5 text-primary" />
               </div>
-              <span className="font-display text-xl font-semibold">MaisonLongue</span>
+              <span className="font-display text-xl font-semibold">Immo92</span>
             </div>
             <p className="text-primary-foreground/70 max-w-md">
              Location longue durée en France ou vacances en Espagne. 
@@ -53,6 +53,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-primary-foreground/70">
                 <Mail className="h-4 w-4 text-primary" />
+                contact@immo92.com
                 contact@maisonlongue.com
               </li>
               <li className="flex items-center gap-2 text-primary-foreground/70">
@@ -69,7 +70,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
-            © {new Date().getFullYear()} Immo. Tous droits réservés.
+            © {new Date().getFullYear()} Immo92. Tous droits réservés.
           </p>
           <div className="flex gap-6">
             <Link to="/legal" className="text-primary-foreground/50 hover:text-primary text-sm transition-colors">

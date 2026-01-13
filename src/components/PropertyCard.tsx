@@ -35,7 +35,7 @@ export function PropertyCard({
   return (
     <Link 
       to={`/properties/${id}`}
-      className="group block bg-card rounded-xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 transform hover:-translate-y-1"
+      className="group block glass-card rounded-xl overflow-hidden hover:shadow-elevated transition-all duration-300 transform hover:-translate-y-1"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img 
