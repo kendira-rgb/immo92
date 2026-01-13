@@ -82,8 +82,8 @@ export default function Index() {
             </div>
 
             <div className="bg-card p-8 rounded-xl shadow-soft hover:shadow-card transition-shadow">
-              <div className="w-14 h-14 rounded-xl bg-olive/10 flex items-center justify-center mb-6">
-                <Shield className="h-7 w-7 text-olive" />
+              <div className="w-14 h-14 rounded-xl bg-teal/10 flex items-center justify-center mb-6">
+                <Shield className="h-7 w-7 text-teal" />
               </div>
               <h3 className="font-display text-xl font-semibold mb-3">Accompagnement</h3>
               <p className="text-muted-foreground">
@@ -94,63 +94,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Countries Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Nos destinations
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Des maisons de qualité dans les plus belles régions
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Link 
-              to="/properties?country=france"
-              className="group relative aspect-[16/9] rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80"
-                alt="France"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="flex items-center gap-2 text-primary-foreground mb-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="text-primary font-medium">France</span>
-                </div>
-                <h3 className="font-display text-2xl font-bold text-primary-foreground">
-                  Découvrir nos biens en France
-                </h3>
-              </div>
-            </Link>
-
-            <Link 
-              to="/properties?country=spain"
-              className="group relative aspect-[16/9] rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1200&q=80"
-                alt="Espagne"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="flex items-center gap-2 text-primary-foreground mb-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="text-primary font-medium">Espagne</span>
-                </div>
-                <h3 className="font-display text-2xl font-bold text-primary-foreground">
-                  Découvrir nos biens en Espagne
-                </h3>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Featured Properties */}
       {!isLoading && featuredProperties && featuredProperties.length > 0 && (
