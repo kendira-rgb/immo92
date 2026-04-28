@@ -15,6 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import AdminProperties from "./pages/admin/Properties";
 import AdminMessages from "./pages/admin/Messages";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -33,9 +34,21 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/properties" element={<AdminProperties />} />
-            <Route path="/admin/messages" element={<AdminMessages />} />
+            <Route path="/admin" element={
+  <ProtectedRoute requiredRole="admin">
+    <Dashboard />
+  </ProtectedRoute>
+} />
+            <Route path="/admin/properties" element={
+  <ProtectedRoute requiredRole="admin">
+    <AdminProperties />
+  </ProtectedRoute>
+} />
+            <Route path="/admin/messages" element={
+  <ProtectedRoute requiredRole="admin">
+    <AdminMessages />
+  </ProtectedRoute>
+} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
