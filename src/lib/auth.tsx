@@ -1,107 +1,85 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-
-// Liste des emails autorisés pour l'accès admin (Google uniquement)
-const ALLOWED_ADMIN_EMAILS = [
-  'kendira@gmail.com',
-  'ilhem.kendira@gmail.com'
-];
+import { createContext, useContext, useEffect, useState } from "react";
+import { supabase, getCurrentProfile } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { Profile } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<{ error: Error | null }>;
+  profile: Profile | null;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  // Vérifie si l'email est dans la liste des admins autorisés
-  const isAllowedAdmin = (email: string | undefined): boolean => {
-    if (!email) return false;
-    return ALLOWED_ADMIN_EMAILS.includes(email.toLowerCase());
-  };
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Vérification directe par email - seuls les emails autorisés sont admin
-          const userEmail = session.user.email;
-          const provider = session.user.app_metadata?.provider;
-          
-          // Admin uniquement si: email autorisé ET connexion via Google
-          const adminStatus = isAllowedAdmin(userEmail) && provider === 'google';
-          setIsAdmin(adminStatus);
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
+    // Vérifier la session actuelle
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const userEmail = session.user.email;
-        const provider = session.user.app_metadata?.provider;
-        const adminStatus = isAllowedAdmin(userEmail) && provider === 'google';
-        setIsAdmin(adminStatus);
+        loadProfile(session.user.id);
+      } else {
+        setIsLoading(false);
       }
-      setLoading(false);
+    });
+
+    // Écouter les changements d'auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        await loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setIsLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
-  };
+  async function loadProfile(userId: string) {
+    const profile = await getCurrentProfile();
+    setProfile(profile);
+    setIsLoading(false);
+  }
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+  async function signIn(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    toast.success("Connexion réussie !");
+  }
+
+  async function signUp(email: string, password: string, fullName: string) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
-        data: { full_name: fullName }
-      }
+        data: { full_name: fullName },
+      },
     });
-    return { error: error as Error | null };
-  };
+    if (error) throw error;
+    toast.success("Inscription réussie ! Vérifiez votre email.");
+  }
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`
-      }
-    });
-    return { error: error as Error | null };
-  };
+  async function signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    toast.success("Déconnecté");
+  }
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const isAdmin = profile?.role === "admin";
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signOut, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -110,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
