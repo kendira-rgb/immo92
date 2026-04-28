@@ -1,101 +1,98 @@
-import { Link } from 'react-router-dom';
-import { MapPin, Bed, Bath, Square, Euro } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Heart, MapPin, Eye, Home } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface PropertyCardProps {
   id: string;
   title: string;
-  city: string;
-  country: string;
-  price_per_month: number;
-  bedrooms: number;
-  bathrooms: number;
-  surface_area?: number;
-  images?: string[];
-  is_available: boolean;
-  is_featured?: boolean;
+  price: number;
+  location: string;
+  image: string;
+  type: string;
+  surface: number;
+  rooms: number;
 }
 
-export function PropertyCard({
-  id,
-  title,
-  city,
-  country,
-  price_per_month,
-  bedrooms,
-  bathrooms,
-  surface_area,
-  images,
-  is_available,
-  is_featured
+export function PropertyCard({ 
+  title, 
+  price, 
+  location, 
+  image, 
+  type, 
+  surface, 
+  rooms 
 }: PropertyCardProps) {
-  const countryLabel = country === 'france' ? 'France' : 'Espagne';
-  const imageUrl = images?.[0] || '/placeholder.svg';
+  const [isLiked, setIsLiked] = useState(false);
 
   return (
-    <Link 
-      to={`/properties/${id}`}
-      className="group block glass-card rounded-xl overflow-hidden hover:shadow-elevated transition-all duration-300 transform hover:-translate-y-1"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.3 }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img 
-          src={imageUrl} 
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-        
-        <div className="absolute top-3 left-3 flex gap-2">
-          {is_featured && (
-            <Badge className="bg-primary text-primary-foreground">
-              En vedette
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+        {/* Image avec overlay */}
+        <div className="relative h-48 overflow-hidden">
+          <img 
+            src={image} 
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          
+          {/* Badge prix */}
+          <div className="absolute bottom-3 left-3">
+            <Badge className="bg-primary text-white text-lg px-3 py-1">
+              {price.toLocaleString('fr-FR')} €
             </Badge>
-          )}
-          {!is_available && (
-            <Badge variant="secondary" className="bg-muted text-muted-foreground">
-              Loué
-            </Badge>
-          )}
+          </div>
+          
+          {/* Bouton like */}
+          <button
+            onClick={() => setIsLiked(!isLiked)}
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white transition-colors"
+          >
+            <Heart 
+              className={`h-5 w-5 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+            />
+          </button>
         </div>
 
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className="flex items-center gap-1 text-primary-foreground/90">
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-lg mb-1 line-clamp-1">{title}</h3>
+          
+          {/* Localisation */}
+          <div className="flex items-center gap-1 text-muted-foreground mb-3">
             <MapPin className="h-4 w-4" />
-            <span className="text-sm font-medium">{city}, {countryLabel}</span>
+            <span className="text-sm">{location}</span>
           </div>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <h3 className="font-display text-lg font-semibold mb-3 group-hover:text-primary transition-colors line-clamp-2">
-          {title}
-        </h3>
-
-        <div className="flex items-center gap-4 text-muted-foreground text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <Bed className="h-4 w-4" />
-            <span>{bedrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath className="h-4 w-4" />
-            <span>{bathrooms}</span>
-          </div>
-          {surface_area && (
+          
+          {/* Caractéristiques */}
+          <div className="flex justify-between text-sm border-t pt-3 mb-3">
             <div className="flex items-center gap-1">
-              <Square className="h-4 w-4" />
-              <span>{surface_area}m²</span>
+              <Home className="h-4 w-4 text-muted-foreground" />
+              <span>{surface} m²</span>
             </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-primary">{price_per_month.toLocaleString('fr-FR')}</span>
-            <Euro className="h-4 w-4 text-primary" />
-            <span className="text-muted-foreground text-sm">/mois</span>
+            <div className="flex items-center gap-1">
+              <Home className="h-4 w-4 text-muted-foreground" />
+              <span>{rooms} pièces</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <span>{type}</span>
+            </div>
           </div>
-        </div>
-      </div>
-    </Link>
+          
+          <Button className="w-full group">
+            Voir le détail
+            <Eye className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
