@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -12,17 +10,14 @@ import {
   TrendingUp, 
   Users,
   ArrowUpRight,
-  ArrowDownRight,
-  Loader2,
+  Euro,
   Home,
   Calendar,
-  DollarSign
+  Loader2
 } from "lucide-react";
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -33,30 +28,8 @@ import {
   Cell
 } from "recharts";
 
-// Types
-interface DashboardStats {
-  totalProperties: number;
-  activeProperties: number;
-  totalMessages: number;
-  unreadMessages: number;
-  totalViews: number;
-  monthlyViews: number;
-  viewsChange: number;
-}
-
-interface RecentProperty {
-  id: string;
-  title: string;
-  price: number;
-  status: string;
-  views: number;
-  created_at: string;
-}
-
 // Composant principal
 export default function Dashboard() {
-  const [dateRange, setDateRange] = useState<"week" | "month" | "year">("month");
-
   // Récupération des statistiques
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -66,30 +39,39 @@ export default function Dashboard() {
         .from('properties')
         .select('*', { count: 'exact', head: true });
 
-      // Biens actifs
-      const { count: activeProps } = await supabase
+      // Biens disponibles
+      const { count: availableProps } = await supabase
         .from('properties')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+        .eq('is_available', true);
 
       // Messages non lus
       const { count: unreadMsgs } = await supabase
-        .from('messages')
+        .from('contact_requests')
         .select('*', { count: 'exact', head: true })
         .eq('is_read', false);
 
       // Total messages
       const { count: totalMsgs } = await supabase
-        .from('messages')
+        .from('contact_requests')
         .select('*', { count: 'exact', head: true });
+
+      // Loyer moyen
+      const { data: properties } = await supabase
+        .from('properties')
+        .select('price_per_month');
+      
+      const avgRent = properties && properties.length > 0
+        ? properties.reduce((acc, p) => acc + p.price_per_month, 0) / properties.length
+        : 0;
 
       return {
         totalProperties: totalProps || 0,
-        activeProperties: activeProps || 0,
+        availableProperties: availableProps || 0,
         totalMessages: totalMsgs || 0,
         unreadMessages: unreadMsgs || 0,
-        totalViews: 12580, // À remplacer par vraie donnée
-        monthlyViews: 3420,
+        averageRent: Math.round(avgRent),
+        totalViews: 12580, // À intégrer plus tard avec analytics
         viewsChange: 12.5
       };
     }
@@ -101,12 +83,12 @@ export default function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('properties')
-        .select('id, title, price, status, created_at')
+        .select('id, title, price_per_month, is_available, city, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (error) throw error;
-      return data as RecentProperty[];
+      return data;
     }
   });
 
@@ -121,12 +103,28 @@ export default function Dashboard() {
     { name: 'Dim', vues: 156 },
   ];
 
-  const propertiesByType = [
-    { name: 'Appartement', value: 45, color: '#8884d8' },
-    { name: 'Maison', value: 32, color: '#82ca9d' },
-    { name: 'Terrain', value: 12, color: '#ffc658' },
-    { name: 'Local commercial', value: 8, color: '#ff8042' },
-  ];
+  // Répartition par ville
+  const { data: propertiesByCity } = useQuery({
+    queryKey: ['properties-by-city'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('properties')
+        .select('city');
+      
+      if (!data) return [];
+      
+      const cityCount = data.reduce((acc: Record<string, number>, prop) => {
+        acc[prop.city] = (acc[prop.city] || 0) + 1;
+        return acc;
+      }, {});
+      
+      return Object.entries(cityCount)
+        .map(([name, value]) => ({ name, value }))
+        .slice(0, 5);
+    }
+  });
+
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088fe'];
 
   if (statsLoading) {
     return (
@@ -146,17 +144,10 @@ export default function Dashboard() {
             Vue d'ensemble de votre activité immobilière
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            {dateRange === "week" && "Cette semaine"}
-            {dateRange === "month" && "Ce mois"}
-            {dateRange === "year" && "Cette année"}
-          </Button>
-          <Button size="sm">
-            Exporter
-          </Button>
-        </div>
+        <Button size="sm">
+          <Calendar className="mr-2 h-4 w-4" />
+          Ce mois
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -169,11 +160,11 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalProperties}</div>
             <p className="text-xs text-muted-foreground">
-              +{stats?.activeProperties} actifs
+              {stats?.availableProperties} disponibles
             </p>
             <div className="mt-2 flex items-center gap-1 text-xs text-green-600">
               <TrendingUp className="h-3 w-3" />
-              <span>+12% vs mois dernier</span>
+              <span>+3 vs mois dernier</span>
             </div>
           </CardContent>
         </Card>
@@ -198,38 +189,33 @@ export default function Dashboard() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Loyer moyen</CardTitle>
+            <Euro className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.averageRent.toLocaleString('fr-FR')} €
+            </div>
+            <p className="text-xs text-muted-foreground">
+              par mois
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Vues totales</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalViews.toLocaleString()}</div>
             <div className="flex items-center gap-1 text-xs">
-              {stats?.viewsChange && stats.viewsChange > 0 ? (
-                <span className="text-green-600 flex items-center">
-                  <ArrowUpRight className="h-3 w-3" />
-                  +{stats.viewsChange}%
-                </span>
-              ) : (
-                <span className="text-red-600 flex items-center">
-                  <ArrowDownRight className="h-3 w-3" />
-                  {stats?.viewsChange}%
-                </span>
-              )}
+              <span className="text-green-600 flex items-center">
+                <ArrowUpRight className="h-3 w-3" />
+                +{stats?.viewsChange}%
+              </span>
               <span className="text-muted-foreground">vs mois dernier</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de conversion</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3.2%</div>
-            <p className="text-xs text-muted-foreground">
-              +0.5% vs mois dernier
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -262,14 +248,14 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Types de biens</CardTitle>
-            <CardDescription>Répartition par catégorie</CardDescription>
+            <CardTitle>Répartition par ville</CardTitle>
+            <CardDescription>Nombre de biens par localisation</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={propertiesByType}
+                  data={propertiesByCity || []}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -278,8 +264,8 @@ export default function Dashboard() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {propertiesByType.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {(propertiesByCity || []).map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -311,17 +297,17 @@ export default function Dashboard() {
                     <div>
                       <p className="font-medium">{property.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(property.created_at).toLocaleDateString('fr-FR')}
+                        {property.city} • {new Date(property.created_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-semibold">
-                        {property.price.toLocaleString('fr-FR')} €
+                        {property.price_per_month.toLocaleString('fr-FR')} €/mois
                       </p>
-                      <Badge variant={property.status === 'active' ? 'default' : 'secondary'}>
-                        {property.status === 'active' ? 'Actif' : 'Inactif'}
+                      <Badge variant={property.is_available ? 'default' : 'secondary'}>
+                        {property.is_available ? 'Disponible' : 'Indisponible'}
                       </Badge>
                     </div>
                     <Button variant="ghost" size="sm">
