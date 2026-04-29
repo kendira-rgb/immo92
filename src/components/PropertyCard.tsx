@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Euro, Home, Maximize2 } from "lucide-react";
-import { motion } from "framer-motion";
 import { useState } from "react";
 
 interface PropertyCardProps {
@@ -34,12 +33,8 @@ export function PropertyCard({
   const imageUrl = images && images.length > 0 ? images[0] : "/placeholder-property.jpg";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.3 }}
-    >
+   // Pas d'import motion
+<div className="animate-fade-up hover:-translate-y-1 transition-transform duration-300">
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group relative">
         {is_featured && (
           <Badge className="absolute top-3 left-3 z-10 bg-yellow-500 hover:bg-yellow-600">
