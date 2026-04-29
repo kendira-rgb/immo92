@@ -101,6 +101,5 @@ export function PropertyCard({
           </Button>
         </CardContent>
       </Card>
-    </motion.div>
   );
 }
